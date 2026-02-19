@@ -1,0 +1,11 @@
+{
+    "project_name": "my-python-package",
+    "project_slug": "{{ cookiecutter.project_name|lower|replace('-', '_') }}",
+    "project_description": "A Python package.",
+    "author": "Yanick Schraner",
+    "author_github_handle": "DCC-BS",
+    "email": "yanick.schraner@bs.ch",
+    "python_version": "3.12",
+    "open_source_license": ["MIT", "BSD-3-Clause", "Unlicense"],
+    "codecov": ["y", "n"]
+}
