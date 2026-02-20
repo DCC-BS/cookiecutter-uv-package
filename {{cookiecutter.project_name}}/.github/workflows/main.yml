@@ -9,9 +9,6 @@ on:
       - main
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # Quality checks via DCC-BS reusable workflow (ruff lint + format + ty)
-  # ---------------------------------------------------------------------------
   quality:
     uses: DCC-BS/ci-workflows/.github/workflows/python-backend-ci.yml@v8
     with:
@@ -19,9 +16,6 @@ jobs:
       quality_python_version: "{{cookiecutter.python_version}}"
       check_command: "make check"
 
-  # ---------------------------------------------------------------------------
-  # Tests + coverage
-  # ---------------------------------------------------------------------------
   tests:
     name: Tests (Python {% raw %}${{ matrix.python-version }}{% endraw %})
     runs-on: ubuntu-latest
@@ -45,15 +39,20 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --all-extras --dev
-
+        
       - name: Run tests with coverage
-        run: uv run pytest --cov --cov-report=xml
+        run: uv run pytest --cov --cov-report=xml --junitxml=junit.xml
         {% if cookiecutter.codecov == "y" %}
-
+        
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          token: {% raw %}${{ secrets.CODECOV_TOKEN }}{% endraw %}
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-          fail_ci_if_error: false
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./junit.xml
         {% endif %}
