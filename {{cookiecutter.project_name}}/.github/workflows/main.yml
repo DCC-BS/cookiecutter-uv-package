@@ -10,7 +10,7 @@ on:
 
 jobs:
   quality:
-    uses: DCC-BS/ci-workflows/.github/workflows/python-backend-ci.yml@v8
+    uses: DCC-BS/ci-workflows/.github/workflows/python-backend-ci.yml@814649735835a84a3d0d6c8d6e6db87dfeb8b348 # v8
     with:
       python_versions: '["{{cookiecutter.python_version}}"]'
       quality_python_version: "{{cookiecutter.python_version}}"
@@ -26,10 +26,10 @@ jobs:
         python-version: ["{{cookiecutter.python_version}}"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@447e6d02b15d65b3247cce2d6019f11957285d11 # v5
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -45,7 +45,7 @@ jobs:
         {% if cookiecutter.codecov == "y" %}
         
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
