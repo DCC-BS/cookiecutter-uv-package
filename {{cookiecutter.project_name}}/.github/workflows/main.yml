@@ -8,51 +8,51 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
+  # Quality checks via the DCC-BS CI pipeline (mise run ci-check)
   quality:
-    uses: DCC-BS/ci-workflows/.github/workflows/python-backend-ci.yml@814649735835a84a3d0d6c8d6e6db87dfeb8b348 # v8
+    uses: DCC-BS/ci-workflows/.github/workflows/ci.yml@a7a5611d4ea9bc55f27ca8bc22327181d0e0cbc0 # v10.0.0
+    permissions:
+      contents: read
+      pull-requests: write
     with:
-      python_versions: '["{{cookiecutter.python_version}}"]'
-      quality_python_version: "{{cookiecutter.python_version}}"
-      check_command: "make check"
+      # `mise run test:unit` runs in the tests job below.
+      test-command: "echo 'Unit tests run in the tests job'"
 
   tests:
     name: Tests (Python {% raw %}${{ matrix.python-version }}{% endraw %})
     runs-on: ubuntu-latest
     needs: [quality]
+    env:
+      UV_PYTHON: {% raw %}${{ matrix.python-version }}{% endraw %}
     strategy:
       fail-fast: false
       matrix:
         python-version: ["{{cookiecutter.python_version}}"]
 
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@447e6d02b15d65b3247cce2d6019f11957285d11 # v5
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+      - name: Setup mise
+        uses: DCC-BS/ci-workflows/actions/setup-mise@a7a5611d4ea9bc55f27ca8bc22327181d0e0cbc0 # v10.0.0
 
-      - name: Set up Python {% raw %}${{ matrix.python-version }}{% endraw %}
-        run: uv python install {% raw %}${{ matrix.python-version }}{% endraw %}
-
-      - name: Install dependencies
-        run: uv sync --all-extras --dev
-        
       - name: Run tests with coverage
-        run: uv run pytest --cov --cov-report=xml --junitxml=junit.xml
-        {% if cookiecutter.codecov == "y" %}
-        
+        run: mise run test:unit
+{%- if cookiecutter.codecov == "y" %}
+
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: {% raw %}${{ secrets.CODECOV_TOKEN }}{% endraw %}
           files: ./coverage.xml
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        if: {% raw %}${{ !cancelled() }}{% endraw %}
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: {% raw %}${{ secrets.CODECOV_TOKEN }}{% endraw %}
           files: ./junit.xml
-        {% endif %}
+          report_type: test_results
+{%- endif %}
